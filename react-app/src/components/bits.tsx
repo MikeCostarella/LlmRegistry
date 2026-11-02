@@ -1,4 +1,6 @@
+import type { ReactNode } from "react";
 import type { Model } from "../data/types";
+import { TIP } from "../data/glossary";
 
 export function fmtPrice(p: Model["pricing"]): string {
   if (!p) return "—";
@@ -29,12 +31,15 @@ function trim(n: number): string {
   return Number.isInteger(n) ? String(n) : String(Math.round(n * 1000) / 1000);
 }
 
+const ACCESS_TIP: Record<Model["access"], string> = { closed: TIP.badgeClosed, "open-weight": TIP.badgeOpenWeight, "open-source": TIP.badgeOpenSource };
+const STATUS_TIP: Record<Model["status"], string> = { current: "Current: in production use.", preview: TIP.badgePreview, deprecated: TIP.badgeDeprecated, local: TIP.badgeLocal };
+
 export function AccessBadge({ m }: { m: Model }) {
-  return <span className={`badge ${m.access}`}>{m.access}</span>;
+  return <span className={`badge ${m.access}`} title={ACCESS_TIP[m.access]}>{m.access}</span>;
 }
 
 export function StatusBadge({ m }: { m: Model }) {
-  return <span className={`badge status ${m.status}`}>{m.status}</span>;
+  return <span className={`badge status ${m.status}`} title={STATUS_TIP[m.status]}>{m.status}</span>;
 }
 
 export function ModelBadges({ m }: { m: Model }) {
@@ -42,22 +47,28 @@ export function ModelBadges({ m }: { m: Model }) {
     <>
       <AccessBadge m={m} />
       {m.status !== "current" && <StatusBadge m={m} />}
-      {m.modelIdVerified === false && <span className="badge unverified" title="Model id taken from an announcement, not a provider catalog">unverified id</span>}
-      {m.local && <span className="badge local-edit" title="Added or edited in this browser">local edit</span>}
+      {m.modelIdVerified === false && <span className="badge unverified" title={TIP.badgeUnverified}>unverified id</span>}
+      {m.local && <span className="badge local-edit" title={TIP.badgeLocalEdit}>local edit</span>}
     </>
   );
 }
 
-export function TagChips({ tags, active, onToggle }: { tags: string[]; active?: Set<string>; onToggle?: (t: string) => void }) {
+export function TagChips({ tags, active, onToggle, tip }: { tags: string[]; active?: Set<string>; onToggle?: (t: string) => void; tip?: (t: string) => string }) {
   return (
     <div className="chips">
       {tags.map((t) => (
-        <button key={t} type="button" className={`chip${active?.has(t) ? " on" : ""}${onToggle ? "" : " static"}`} onClick={onToggle ? () => onToggle(t) : undefined} tabIndex={onToggle ? 0 : -1}>
+        <button key={t} type="button" className={`chip${active?.has(t) ? " on" : ""}${onToggle ? "" : " static"}`} onClick={onToggle ? () => onToggle(t) : undefined} tabIndex={onToggle ? 0 : -1}
+          title={tip ? tip(t) : onToggle ? `Tag "${t}" — click to ${active?.has(t) ? "stop filtering by it" : "show only models carrying it"}` : `Tag "${t}"`}>
           {t}
         </button>
       ))}
     </div>
   );
+}
+
+/** A label with hover help: renders a dotted-underlined span that explains itself. */
+export function Term({ tip, children }: { tip: string; children: ReactNode }) {
+  return <span className="term" title={tip}>{children}</span>;
 }
 
 /** Parse a comma / space separated tag string into a clean array. */

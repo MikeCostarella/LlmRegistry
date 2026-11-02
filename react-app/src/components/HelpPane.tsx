@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { GLOSSARY } from "../data/glossary";
 
 interface Props {
   open: boolean;
@@ -44,6 +45,17 @@ export default function HelpPane({ open, onClose }: Props) {
           <li><b>Esc</b> — close help or menu</li>
           <li><b>Ctrl+Enter</b> in the Run view — start the run</li>
         </ul>
+
+        <h3>Glossary</h3>
+        <p className="muted" style={{ fontSize: 12.5 }}>The same definitions appear as hover text on dotted-underlined labels, column headers and badges throughout the app.</p>
+        <dl className="glossary">
+          {GLOSSARY.map((g) => (
+            <div key={g.term}>
+              <dt>{g.term}</dt>
+              <dd>{g.def}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
     </aside>
   );

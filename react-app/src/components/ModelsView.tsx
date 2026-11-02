@@ -5,6 +5,7 @@ import { resolveGroup } from "../data/groups";
 import { downloadText, stamp, toCsv } from "../data/csv";
 import ModelEditor from "./ModelEditor";
 import { ModelBadges, TagChips, fmtContext, fmtPrice } from "./bits";
+import { TIP } from "../data/glossary";
 
 type SortKey = "vendor" | "name" | "provider" | "access" | "context" | "priceIn" | "priceOut" | "status";
 
@@ -54,8 +55,8 @@ export default function ModelsView({ models, providers, groups, fileMode, onSave
 
   const toggleTag = (t: string) => setTags((p) => { const n = new Set(p); if (n.has(t)) n.delete(t); else n.add(t); return n; });
   const toggleChecked = (id: string) => setChecked((p) => { const n = new Set(p); if (n.has(id)) n.delete(id); else n.add(id); return n; });
-  const header = (label: string, key: SortKey, align?: "num") => (
-    <th className={align} onClick={() => setSort((s) => ({ key, dir: s.key === key ? (s.dir === 1 ? -1 : 1) : 1 }))} aria-sort={sort.key === key ? (sort.dir === 1 ? "ascending" : "descending") : "none"}>
+  const header = (label: string, key: SortKey, tip: string, align?: "num") => (
+    <th className={align} title={`${tip}\n\nClick to sort.`} onClick={() => setSort((s) => ({ key, dir: s.key === key ? (s.dir === 1 ? -1 : 1) : 1 }))} aria-sort={sort.key === key ? (sort.dir === 1 ? "ascending" : "descending") : "none"}>
       {label}{sort.key === key ? (sort.dir === 1 ? " ▲" : " ▼") : ""}
     </th>
   );
@@ -72,7 +73,7 @@ export default function ModelsView({ models, providers, groups, fileMode, onSave
       <div className="view-head">
         <h2 className="view-title">Models <span className="muted">· {filtered.length} of {models.length}</span></h2>
         <input className="input search" placeholder="Search name, vendor, model id, tag…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search models" />
-        <label className="pick">Group{" "}
+        <label className="pick" title={TIP.statGroups}>Group{" "}
           <select value={groupId} onChange={(e) => setGroupId(e.target.value)}>
             <option value="">any</option>
             {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
@@ -83,9 +84,9 @@ export default function ModelsView({ models, providers, groups, fileMode, onSave
           <button type="button" className={layout === "cards" ? "active" : ""} onClick={() => setLayout("cards")}>Cards</button>
         </div>
         <span className="spacer" />
-        <button type="button" className="btn" onClick={() => setEditing("new")}>+ Add model</button>
-        <button type="button" className="btn secondary" onClick={exportCsv} disabled={!filtered.length}>Export CSV</button>
-        {checked.size > 0 && <button type="button" className="btn go" onClick={() => onRunModels([...checked])}>Run on {checked.size} selected →</button>}
+        <button type="button" className="btn" onClick={() => setEditing("new")} title="Add a model by hand. For real ids and prices, Settings → Import from OpenRouter or Ollama is faster.">+ Add model</button>
+        <button type="button" className="btn secondary" onClick={exportCsv} disabled={!filtered.length} title="Download the rows currently shown as a CSV (UTF-8, Excel-friendly).">Export CSV</button>
+        {checked.size > 0 && <button type="button" className="btn go" onClick={() => onRunModels([...checked])} title="Open the Run view with the ticked models as the target.">Run on {checked.size} selected →</button>}
       </div>
 
       <div className="row" style={{ marginBottom: 10 }}>
@@ -111,27 +112,27 @@ export default function ModelsView({ models, providers, groups, fileMode, onSave
             <thead>
               <tr>
                 <th style={{ cursor: "default" }} aria-label="Select"><input type="checkbox" aria-label="Select all shown" checked={filtered.length > 0 && filtered.every((m) => checked.has(m.id))} onChange={(e) => setChecked(e.target.checked ? new Set(filtered.map((m) => m.id)) : new Set())} /></th>
-                {header("Model", "name")}
-                {header("Vendor", "vendor")}
-                {header("Provider", "provider")}
-                {header("Access", "access")}
-                {header("Status", "status")}
-                {header("Context", "context", "num")}
-                {header("$ in / out per 1M", "priceIn", "num")}
-                <th style={{ cursor: "default" }}>Tags</th>
+                {header("Model", "name", `${TIP.name}\nThe grey line under it is the model id — ${TIP.modelId}`)}
+                {header("Vendor", "vendor", TIP.vendor)}
+                {header("Provider", "provider", TIP.provider)}
+                {header("Access", "access", TIP.access)}
+                {header("Status", "status", TIP.status)}
+                {header("Context", "context", TIP.contextWindow, "num")}
+                {header("$ in / out per 1M", "priceIn", TIP.pricePair, "num")}
+                <th style={{ cursor: "default" }} title={TIP.tags}>Tags</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((m) => (
-                <tr key={m.id} className={checked.has(m.id) ? "selected" : ""} onClick={() => setEditing(m)}>
-                  <td onClick={(e) => e.stopPropagation()}><input type="checkbox" checked={checked.has(m.id)} onChange={() => toggleChecked(m.id)} aria-label={`Select ${m.name}`} /></td>
-                  <td><div className="name">{m.name}</div><div className="mid">{m.modelId}</div></td>
-                  <td>{m.vendor}</td>
-                  <td>{providerName(m.provider)}</td>
+                <tr key={m.id} className={checked.has(m.id) ? "selected" : ""} onClick={() => setEditing(m)} title="Click to edit">
+                  <td onClick={(e) => e.stopPropagation()} title="Tick models to run an operation on just these."><input type="checkbox" checked={checked.has(m.id)} onChange={() => toggleChecked(m.id)} aria-label={`Select ${m.name}`} /></td>
+                  <td><div className="name">{m.name}</div><div className="mid" title={`API model id — ${TIP.modelId}`}>{m.modelId}</div></td>
+                  <td title={TIP.vendor}>{m.vendor}</td>
+                  <td title={`${providerName(m.provider)} — ${TIP.provider}`}>{providerName(m.provider)}</td>
                   <td><ModelBadges m={{ ...m, status: "current", local: false }} /></td>
                   <td><span className={`badge status ${m.status}`}>{m.status}</span>{m.local && <> <span className="badge local-edit">local</span></>}</td>
-                  <td className="num">{fmtContext(m.contextWindow)}</td>
-                  <td className="num">{fmtPrice(m.pricing)}</td>
+                  <td className="num" title={m.contextWindow ? `${m.contextWindow.toLocaleString()} tokens — ${TIP.contextWindow}` : "Context window unknown — edit the model to set it."}>{fmtContext(m.contextWindow)}</td>
+                  <td className="num" title={m.pricing ? `$${m.pricing.input} per 1M input tokens, $${m.pricing.output} per 1M output tokens` : "No pricing on file, so run costs show —. Edit the model or re-import from OpenRouter."}>{fmtPrice(m.pricing)}</td>
                   <td><TagChips tags={m.tags} /></td>
                 </tr>
               ))}

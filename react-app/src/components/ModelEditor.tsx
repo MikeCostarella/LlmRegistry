@@ -2,7 +2,17 @@ import { useState } from "react";
 import type { Access, Capability, Model, Provider, Status } from "../data/types";
 import { ACCESS_VALUES, CAPABILITY_VALUES, STATUS_VALUES } from "../data/types";
 import { slugify } from "../data/registry";
-import { parseTags } from "./bits";
+import { Term, parseTags } from "./bits";
+import { TIP } from "../data/glossary";
+
+const CAP_TIP: Record<Capability, string> = {
+  tools: "Can call functions / tools you define — the prerequisite for agentic use.",
+  vision: "Accepts images as input.",
+  json: "Can be forced to return structured JSON (response_format / structured outputs).",
+  reasoning: "Has an extended-thinking mode that spends extra tokens before answering.",
+  audio: "Speech in and/or out.",
+  embeddings: "Returns vectors for similarity search rather than text.",
+};
 
 interface Props {
   model: Model | null; // null = new
@@ -99,38 +109,38 @@ export default function ModelEditor({ model, providers, existingIds, fileMode, o
     <div className="card" style={{ marginBottom: 14 }}>
       <h4>{isNew ? "Add a model" : `Edit ${model.name}`}</h4>
       <div className="form-grid">
-        <label className="field"><span>Name</span><input className="input" value={d.name} onChange={(e) => set("name", e.target.value)} placeholder="Claude Sonnet 5.5" /></label>
-        <label className="field"><span>Vendor (lab)</span><input className="input" value={d.vendor} onChange={(e) => set("vendor", e.target.value)} placeholder="Anthropic" /></label>
-        <label className="field"><span>Provider (who serves it)</span>
+        <label className="field"><span><Term tip={TIP.name}>Name</Term></span><input className="input" value={d.name} onChange={(e) => set("name", e.target.value)} placeholder="Claude Sonnet 5.5" /></label>
+        <label className="field"><span><Term tip={TIP.vendor}>Vendor (lab)</Term></span><input className="input" value={d.vendor} onChange={(e) => set("vendor", e.target.value)} placeholder="Anthropic" /></label>
+        <label className="field"><span><Term tip={TIP.provider}>Provider (who serves it)</Term></span>
           <select value={d.provider} onChange={(e) => set("provider", e.target.value)}>
             {providers.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
         </label>
-        <label className="field"><span>Model id sent to the API</span><input className="input mono" value={d.modelId} onChange={(e) => set("modelId", e.target.value)} placeholder="claude-sonnet-5-5" /></label>
-        <label className="field"><span>Registry id (blank = auto)</span><input className="input mono" value={d.id} onChange={(e) => set("id", e.target.value)} disabled={!isNew} placeholder="anthropic/claude-sonnet-5-5" /></label>
-        <label className="field"><span>Access</span>
+        <label className="field"><span><Term tip={TIP.modelId}>Model id sent to the API</Term></span><input className="input mono" value={d.modelId} onChange={(e) => set("modelId", e.target.value)} placeholder="claude-sonnet-5-5" /></label>
+        <label className="field"><span><Term tip={TIP.registryId}>Registry id (blank = auto)</Term></span><input className="input mono" value={d.id} onChange={(e) => set("id", e.target.value)} disabled={!isNew} placeholder="anthropic/claude-sonnet-5-5" /></label>
+        <label className="field"><span><Term tip={TIP.access}>Access</Term></span>
           <select value={d.access} onChange={(e) => set("access", e.target.value as Access)}>{ACCESS_VALUES.map((a) => <option key={a}>{a}</option>)}</select>
         </label>
-        <label className="field"><span>Status</span>
+        <label className="field"><span><Term tip={TIP.status}>Status</Term></span>
           <select value={d.status} onChange={(e) => set("status", e.target.value as Status)}>{STATUS_VALUES.map((s) => <option key={s}>{s}</option>)}</select>
         </label>
-        <label className="field"><span>License</span><input className="input" value={d.license} onChange={(e) => set("license", e.target.value)} placeholder="Proprietary / MIT / Apache-2.0" /></label>
-        <label className="field"><span>Released</span><input className="input" value={d.released} onChange={(e) => set("released", e.target.value)} placeholder="2026-09" /></label>
-        <label className="field"><span>Context window (tokens)</span><input className="input" value={d.contextWindow} onChange={(e) => set("contextWindow", e.target.value)} placeholder="200000" /></label>
-        <label className="field"><span>$ per 1M input tokens</span><input className="input" value={d.priceIn} onChange={(e) => set("priceIn", e.target.value)} placeholder="3" /></label>
-        <label className="field"><span>$ per 1M output tokens</span><input className="input" value={d.priceOut} onChange={(e) => set("priceOut", e.target.value)} placeholder="15" /></label>
-        <label className="field wide"><span>Tags (comma or space separated)</span><input className="input" value={d.tags} onChange={(e) => set("tags", e.target.value)} placeholder="frontier, coding, cheap" /></label>
+        <label className="field"><span><Term tip={TIP.license}>License</Term></span><input className="input" value={d.license} onChange={(e) => set("license", e.target.value)} placeholder="Proprietary / MIT / Apache-2.0" /></label>
+        <label className="field"><span><Term tip={TIP.released}>Released</Term></span><input className="input" value={d.released} onChange={(e) => set("released", e.target.value)} placeholder="2026-09" /></label>
+        <label className="field"><span><Term tip={TIP.contextWindow}>Context window (tokens)</Term></span><input className="input" value={d.contextWindow} onChange={(e) => set("contextWindow", e.target.value)} placeholder="200000" /></label>
+        <label className="field"><span><Term tip={TIP.priceIn}>$ per 1M input tokens</Term></span><input className="input" value={d.priceIn} onChange={(e) => set("priceIn", e.target.value)} placeholder="3" /></label>
+        <label className="field"><span><Term tip={TIP.priceOut}>$ per 1M output tokens</Term></span><input className="input" value={d.priceOut} onChange={(e) => set("priceOut", e.target.value)} placeholder="15" /></label>
+        <label className="field wide"><span><Term tip={TIP.tags}>Tags (comma or space separated)</Term></span><input className="input" value={d.tags} onChange={(e) => set("tags", e.target.value)} placeholder="frontier, coding, cheap" /></label>
         <div className="field wide">
-          <span>Capabilities</span>
+          <span><Term tip={TIP.capabilities}>Capabilities</Term></span>
           <div className="chips">
             {CAPABILITY_VALUES.map((c) => (
-              <button key={c} type="button" className={`chip${d.capabilities.has(c) ? " on" : ""}`} onClick={() => { const n = new Set(d.capabilities); if (n.has(c)) n.delete(c); else n.add(c); set("capabilities", n); }}>{c}</button>
+              <button key={c} type="button" className={`chip${d.capabilities.has(c) ? " on" : ""}`} title={CAP_TIP[c]} onClick={() => { const n = new Set(d.capabilities); if (n.has(c)) n.delete(c); else n.add(c); set("capabilities", n); }}>{c}</button>
             ))}
           </div>
         </div>
-        <label className="field wide"><span>Homepage</span><input className="input" value={d.homepage} onChange={(e) => set("homepage", e.target.value)} placeholder="https://" /></label>
-        <label className="field wide"><span>Notes</span><textarea value={d.notes} onChange={(e) => set("notes", e.target.value)} /></label>
-        <label className="row wide" style={{ fontSize: 12.5 }}>
+        <label className="field wide"><span><Term tip={TIP.homepage}>Homepage</Term></span><input className="input" value={d.homepage} onChange={(e) => set("homepage", e.target.value)} placeholder="https://" /></label>
+        <label className="field wide"><span><Term tip={TIP.notes}>Notes</Term></span><textarea value={d.notes} onChange={(e) => set("notes", e.target.value)} /></label>
+        <label className="row wide" style={{ fontSize: 12.5 }} title={TIP.verified}>
           <input type="checkbox" checked={d.modelIdVerified} onChange={(e) => set("modelIdVerified", e.target.checked)} /> Model id confirmed against the provider's catalog
         </label>
       </div>

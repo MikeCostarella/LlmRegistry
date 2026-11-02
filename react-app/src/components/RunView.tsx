@@ -3,7 +3,8 @@ import type { Group, Model, Operation, Provider, Run, Settings } from "../data/t
 import { resolveGroup } from "../data/groups";
 import { executeRun, missingKey, newRun, saveRun } from "../data/runner";
 import { downloadText, stamp, toCsv } from "../data/csv";
-import { fmtMs, fmtUsd } from "./bits";
+import { Term, fmtMs, fmtUsd } from "./bits";
+import { TIP } from "../data/glossary";
 
 export interface RunTarget {
   kind: "group" | "models";
@@ -120,30 +121,30 @@ export default function RunView({ models, providers, groups, operations, setting
         {running ? (
           <button type="button" className="btn danger" onClick={cancel}>Cancel</button>
         ) : (
-          <button type="button" className="btn go" onClick={() => void start()} disabled={!prompt.trim() || !targets.length}>Run on {targets.length} model{targets.length === 1 ? "" : "s"} →</button>
+          <button type="button" className="btn go" onClick={() => void start()} disabled={!prompt.trim() || !targets.length} title="Send the prompt to every target in parallel (Ctrl+Enter).">Run on {targets.length} model{targets.length === 1 ? "" : "s"} →</button>
         )}
       </div>
 
       <div className="grid wide" style={{ marginBottom: 12 }}>
         <div className="card">
           <h4>Operation</h4>
-          <label className="field"><span>Saved operation</span>
+          <label className="field"><span><Term tip={TIP.operation}>Saved operation</Term></span>
             <select value={opId} onChange={(e) => setOpId(e.target.value)}>
               {operations.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
             </select>
           </label>
-          <label className="field"><span>System prompt</span><textarea value={system} onChange={(e) => setSystem(e.target.value)} style={{ minHeight: 56 }} /></label>
-          <label className="field"><span>Prompt</span><textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} style={{ minHeight: 110 }} /></label>
+          <label className="field"><span><Term tip={TIP.systemPrompt}>System prompt</Term></span><textarea value={system} onChange={(e) => setSystem(e.target.value)} style={{ minHeight: 56 }} /></label>
+          <label className="field"><span><Term tip={TIP.prompt}>Prompt</Term></span><textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} style={{ minHeight: 110 }} /></label>
           <div className="row">
-            <label className="field" style={{ width: 120 }}><span>Max tokens</span><input className="input" value={maxTokens} onChange={(e) => setMaxTokens(e.target.value)} /></label>
-            <label className="field" style={{ width: 120 }}><span>Temperature</span><input className="input" value={temperature} onChange={(e) => setTemperature(e.target.value)} placeholder="default" /></label>
+            <label className="field" style={{ width: 120 }}><span><Term tip={TIP.maxTokens}>Max tokens</Term></span><input className="input" value={maxTokens} onChange={(e) => setMaxTokens(e.target.value)} /></label>
+            <label className="field" style={{ width: 120 }}><span><Term tip={TIP.temperature}>Temperature</Term></span><input className="input" value={temperature} onChange={(e) => setTemperature(e.target.value)} placeholder="default" /></label>
             <span className="note" style={{ margin: 0 }}>Ctrl+Enter runs.</span>
           </div>
         </div>
 
         <div className="card">
-          <h4>Target <span className="badge status">{targets.length}</span></h4>
-          <label className="field"><span>Group</span>
+          <h4><Term tip={TIP.target}>Target</Term> <span className="badge status" title="How many models will be called.">{targets.length}</span></h4>
+          <label className="field"><span><Term tip="Pick a group to run on everything it matches right now, or choose the blank entry to tick models by hand.">Group</Term></span>
             <select value={groupId} onChange={(e) => { setGroupId(e.target.value); if (e.target.value) setPicked(new Set()); }}>
               <option value="">— pick models individually —</option>
               {groups.map((g) => <option key={g.id} value={g.id}>{g.name} ({resolveGroup(models, g.filter).length})</option>)}
@@ -175,7 +176,7 @@ export default function RunView({ models, providers, groups, operations, setting
           <div className="summary-row">
             <span><b>{run.operationName}</b> on <b>{run.targetLabel}</b></span>
             <span>{done} / {run.results.length} finished · <b>{okCount}</b> ok</span>
-            {anyCost && <span>Total est. cost <b>{fmtUsd(totalCost)}</b></span>}
+            {anyCost && <span title={TIP.estCost}>Total est. cost <b>{fmtUsd(totalCost)}</b></span>}
             <span className="muted">{new Date(run.startedAt).toLocaleString()}</span>
           </div>
           <div className="results">
@@ -183,12 +184,12 @@ export default function RunView({ models, providers, groups, operations, setting
               const m = modelById.get(r.modelId);
               return (
                 <div key={r.modelId} className={`card result ${r.status}`}>
-                  <h4><span className={`status-dot ${r.status}`} aria-hidden="true" /> {m?.name ?? r.modelId} <span className="muted" style={{ fontWeight: 400, fontSize: 12 }}>{m?.vendor}</span></h4>
+                  <h4><span className={`status-dot ${r.status}`} aria-hidden="true" title={TIP.runStatus} /> {m?.name ?? r.modelId} <span className="muted" style={{ fontWeight: 400, fontSize: 12 }}>{m?.vendor}</span></h4>
                   <div className="meta">
-                    <span>via <b>{m ? providerById.get(m.provider)?.name ?? m.provider : "?"}</b></span>
-                    <span><b>{fmtMs(r.latencyMs)}</b></span>
-                    {r.usage && <span>{r.usage.inputTokens ?? "?"} in · {r.usage.outputTokens ?? "?"} out</span>}
-                    {r.status === "ok" && <span>cost <b>{fmtUsd(r.costUsd)}</b></span>}
+                    <span title={TIP.provider}>via <b>{m ? providerById.get(m.provider)?.name ?? m.provider : "?"}</b></span>
+                    <span title={TIP.latency}><b>{fmtMs(r.latencyMs)}</b></span>
+                    {r.usage && <span title={TIP.tokensInOut}>{r.usage.inputTokens ?? "?"} in · {r.usage.outputTokens ?? "?"} out</span>}
+                    {r.status === "ok" && <span title={TIP.estCost}>cost <b>{fmtUsd(r.costUsd)}</b></span>}
                   </div>
                   {r.status === "pending" && <div className="detail">Waiting…</div>}
                   {r.status === "running" && <div className="detail">Calling {m?.modelId}…</div>}

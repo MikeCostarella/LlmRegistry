@@ -11,6 +11,7 @@ import SettingsView from "./components/SettingsView";
 import About from "./components/About";
 import type { Run, Settings } from "./data/types";
 import { BUNDLED } from "./data/registry";
+import { TIP } from "./data/glossary";
 import { useRegistryStore } from "./data/store";
 import { KEYS, readJson, writeJson } from "./data/storage";
 import { loadRuns } from "./data/runner";
@@ -85,13 +86,13 @@ export default function App() {
       </header>
 
       <div className="stats">
-        <span><b>{models.length}</b> models</span>
-        <span><b>{models.filter((m) => m.access !== "closed").length}</b> open-weight</span>
-        <span><b>{groups.length}</b> groups</span>
-        <span><b>{operations.length}</b> operations</span>
-        <span><b>{keyed}</b> / {providers.length} providers ready</span>
-        <span><b>{runs.length}</b> runs saved</span>
-        <span className="right" title={fileMode && file ? file : undefined}>
+        <span title={TIP.statModels}><b>{models.length}</b> models</span>
+        <span title={TIP.statOpenWeight}><b>{models.filter((m) => m.access !== "closed").length}</b> open-weight</span>
+        <span title={TIP.statGroups}><b>{groups.length}</b> groups</span>
+        <span title={TIP.statOperations}><b>{operations.length}</b> operations</span>
+        <span title={TIP.statProviders}><b>{keyed}</b> / {providers.length} providers ready</span>
+        <span title={TIP.statRuns}><b>{runs.length}</b> runs saved</span>
+        <span className="right" title={fileMode ? `${TIP.modeFile}${file ? `\n\n${file}` : ""}` : mode === "browser" ? TIP.modeBrowser : undefined}>
           {mode === "probing" && "…"}
           {fileMode && <><span className="dot ok" aria-hidden="true" /> edits write to <b>registry/models.json</b></>}
           {mode === "browser" && (localEdits > 0 ? `${localEdits} local edit${localEdits === 1 ? "" : "s"} in this browser` : "edits stay in this browser")}

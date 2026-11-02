@@ -4,6 +4,8 @@ import { connectionFor } from "../data/runner";
 import { fetchOpenRouterCatalog, importFromOllama, openRouterToModel, type ImportCandidate } from "../data/importers";
 import { toRegistryJson } from "../data/registry";
 import { downloadText, stamp } from "../data/csv";
+import { Term } from "./bits";
+import { TIP } from "../data/glossary";
 
 interface Props {
   providers: Provider[];
@@ -98,8 +100,8 @@ export default function SettingsView({ providers, settings, onSettingsChange, mo
       <div className="view-head">
         <h2 className="view-title">Settings</h2>
         <span className="spacer" />
-        <button type="button" className="btn secondary" onClick={exportRegistry}>Export registry JSON</button>
-        {!fileMode && <button type="button" className="btn danger" onClick={() => { if (confirm("Remove every local model, group, operation and hidden-model override? Keys and runs are kept.")) onResetLocal(); }}>Reset local edits</button>}
+        <button type="button" className="btn secondary" onClick={exportRegistry} title={TIP.exportRegistry}>Export registry JSON</button>
+        {!fileMode && <button type="button" className="btn danger" onClick={() => { if (confirm("Remove every local model, group, operation and hidden-model override? Keys and runs are kept.")) onResetLocal(); }} title={TIP.resetLocal}>Reset local edits</button>}
       </div>
       {fileMode && (
         <div className="banner info">Dev server: model, group and operation edits are written straight to <code className="mono">{registryFile}</code> and show up as a git diff. Imports below land there too. Keys and run history still stay in this browser.</div>
@@ -112,25 +114,25 @@ export default function SettingsView({ providers, settings, onSettingsChange, mo
           const st = status[p.id];
           return (
             <div key={p.id} className="card">
-              <h4>{p.name} <span className="badge status">{p.kind}</span>{p.browser === false && <span className="badge unverified" title="Direct browser calls may be blocked by CORS">no browser CORS</span>}</h4>
+              <h4>{p.name} <span className="badge status" title={p.kind === "anthropic" ? "Speaks Anthropic's Messages API." : "Speaks the OpenAI chat-completions API, which most providers and local servers have adopted."}>{p.kind}</span>{p.browser === false && <span className="badge unverified" title={TIP.noBrowserCors}>no browser CORS</span>}</h4>
               {p.notes && <div className="detail">{p.notes}</div>}
               <div className="form-grid">
                 {p.keyEnv && (
-                  <label className="field wide"><span>API key <span className="muted">(env: {p.keyEnv} for the MCP server)</span></span>
+                  <label className="field wide"><span><Term tip={TIP.apiKey}>API key</Term> <span className="muted" title={TIP.keyEnv}>(env: {p.keyEnv} for the MCP server)</span></span>
                     <div className="row" style={{ gap: 6 }}>
                       <input className="input mono" style={{ flex: 1 }} type={show.has(p.id) ? "text" : "password"} value={s.apiKey ?? ""} onChange={(e) => setField(p.id, "apiKey", e.target.value)} autoComplete="off" spellCheck={false} />
                       <button type="button" className="btn small secondary" onClick={() => setShow((x) => { const n = new Set(x); if (n.has(p.id)) n.delete(p.id); else n.add(p.id); return n; })}>{show.has(p.id) ? "hide" : "show"}</button>
                     </div>
                   </label>
                 )}
-                <label className="field wide"><span>Base URL <span className="muted">(blank = {p.baseUrl})</span></span>
+                <label className="field wide"><span><Term tip={TIP.baseUrl}>Base URL</Term> <span className="muted">(blank = {p.baseUrl})</span></span>
                   <input className="input mono" value={s.baseUrl ?? ""} onChange={(e) => setField(p.id, "baseUrl", e.target.value)} placeholder={p.baseUrl} spellCheck={false} />
                 </label>
               </div>
               <div className="actions" style={{ marginTop: 6 }}>
-                <button type="button" className="btn small" onClick={() => void test(p)} disabled={busy === p.id}>Test connection</button>
-                {p.id === "ollama" && <button type="button" className="btn small go" onClick={() => void importOllama(p)} disabled={busy === p.id}>Import pulled models</button>}
-                {p.id === "openrouter" && <button type="button" className="btn small go" onClick={() => void importOpenRouter(p)} disabled={busy === p.id}>Import from public catalog</button>}
+                <button type="button" className="btn small" onClick={() => void test(p)} disabled={busy === p.id} title={TIP.testConnection}>Test connection</button>
+                {p.id === "ollama" && <button type="button" className="btn small go" onClick={() => void importOllama(p)} disabled={busy === p.id} title={TIP.importOllama}>Import pulled models</button>}
+                {p.id === "openrouter" && <button type="button" className="btn small go" onClick={() => void importOpenRouter(p)} disabled={busy === p.id} title={TIP.importOpenRouter}>Import from public catalog</button>}
                 {p.docs && <a className="btn small secondary" href={p.docs} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>Docs ↗</a>}
               </div>
               {st && <div className={`note ${st.ok ? "ok" : "error"}`}>{st.msg}</div>}
