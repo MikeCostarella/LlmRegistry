@@ -1,0 +1,57 @@
+/* Design tokens shared across the fleet apps (same palette as OhioElections / CurrentElectionStatistics). */
+
+:root {
+  /* Backgrounds (dark navy theme) */
+  --bg-app: #1a2a3a;
+  --bg-header-1: #0d2137;
+  --bg-header-2: #1b3d5c;
+  --bg-stats: #0d1e2d;
+  --bg-search: #0f2335;
+  --bg-input: #1a2f42;
+  --bg-dialog-1: #0f2234;
+  --bg-dialog-2: #1a3250;
+  --bg-dialog-header-1: #0d2a44;
+  --bg-dialog-header-2: #1b4a6a;
+  --bg-legend: rgba(13, 33, 55, 0.92);
+  --bg-tooltip: rgba(10, 25, 40, 0.92);
+  --bg-card: rgba(255, 255, 255, 0.04);
+
+  /* Text */
+  --text-main: #eee;
+  --text-accent: #5bc4f5; /* cyan accent */
+  --text-muted: #8ab4cc;
+  --text-muted-2: #6a9ab5;
+  --text-card: #a0c4dd;
+  --text-card-label: #6a8ea8;
+  --text-coords: #556a7d;
+
+  /* Borders / accents */
+  --border-accent: #2e7dbe;
+  --border-accent-bright: #5bc4f5;
+  --border-card: #2a4a66;
+  --border-stats: #1e3a52;
+
+  /* Buttons */
+  --btn-primary: #2e7dbe;
+  --btn-primary-hover: #3a9ad6;
+  --btn-dir: #1a6e3a;
+  --btn-dir-hover: #22943d;
+  --btn-parcel: #5a3a8e;
+  --btn-parcel-hover: #7040b8;
+  --btn-suggest: #b8761f;
+  --btn-suggest-hover: #d68f2a;
+  --btn-clear: #334455;
+
+  /* Status */
+  --ok: #4fc47a;
+  --warn: #e3a04a;
+  --err: #f07070;
+
+  /* Access badges */
+  --access-closed: #5a3a8e;
+  --access-open: #1a6e3a;
+
+  /* Typography */
+  --font-stack: "Segoe UI", Arial, sans-serif;
+  --font-mono: Consolas, "Cascadia Mono", Menlo, monospace;
+}

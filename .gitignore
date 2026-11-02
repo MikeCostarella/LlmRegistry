@@ -1,0 +1,7 @@
+*.tsbuildinfo
+react-app/vite.config.ts.timestamp-*
+node_modules
+dist
+dist-ssr
+*.local
+.DS_Store

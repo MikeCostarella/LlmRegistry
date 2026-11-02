@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mikecostarella.github.io/LlmRegistry/registry/models.schema.json",
+  "title": "LLM Registry",
+  "type": "object",
+  "required": ["version", "providers", "models", "groups"],
+  "properties": {
+    "version": { "type": "integer" },
+    "updated": { "type": "string" },
+    "notes": { "type": "array", "items": { "type": "string" } },
+    "providers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "kind", "baseUrl"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "kind": { "enum": ["openai-compatible", "anthropic"] },
+          "baseUrl": { "type": "string" },
+          "keyEnv": { "type": ["string", "null"], "description": "Environment variable the MCP server reads the API key from; null for keyless local servers." },
+          "browser": { "type": "boolean", "description": "Whether the provider accepts direct calls from a browser (CORS)." },
+          "docs": { "type": "string" },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "models": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "vendor", "provider", "modelId", "access", "status", "tags"],
+        "properties": {
+          "id": { "type": "string", "description": "Registry id, unique: vendor-slug/model-slug." },
+          "name": { "type": "string" },
+          "vendor": { "type": "string", "description": "Lab that trained the model." },
+          "provider": { "type": "string", "description": "Provider id used to call it." },
+          "modelId": { "type": "string", "description": "Exact model string sent to the provider API." },
+          "modelIdVerified": { "type": "boolean" },
+          "access": { "enum": ["closed", "open-weight", "open-source"] },
+          "license": { "type": "string" },
+          "status": { "enum": ["current", "preview", "deprecated", "local"] },
+          "released": { "type": "string" },
+          "contextWindow": { "type": ["integer", "null"] },
+          "pricing": {
+            "type": ["object", "null"],
+            "properties": { "input": { "type": "number" }, "output": { "type": "number" } },
+            "description": "USD per 1M tokens."
+          },
+          "capabilities": { "type": "array", "items": { "enum": ["tools", "vision", "json", "reasoning", "audio", "embeddings"] } },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "homepage": { "type": "string" },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "filter"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "filter": {
+            "type": "object",
+            "description": "All present clauses must match (AND).",
+            "properties": {
+              "allTags": { "type": "array", "items": { "type": "string" }, "description": "Model must carry every tag." },
+              "anyTags": { "type": "array", "items": { "type": "string" }, "description": "Model must carry at least one." },
+              "noneTags": { "type": "array", "items": { "type": "string" } },
+              "providers": { "type": "array", "items": { "type": "string" } },
+              "vendors": { "type": "array", "items": { "type": "string" } },
+              "access": { "type": "array", "items": { "type": "string" } },
+              "status": { "type": "array", "items": { "type": "string" } },
+              "capabilities": { "type": "array", "items": { "type": "string" } },
+              "maxInputPrice": { "type": "number", "description": "USD per 1M input tokens; models with unknown pricing are excluded." },
+              "minContext": { "type": "integer" },
+              "ids": { "type": "array", "items": { "type": "string" }, "description": "Explicit registry ids (escape hatch for hand-picked sets)." }
+            }
+          }
+        }
+      }
+    },
+    "operations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "prompt"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "system": { "type": "string" },
+          "prompt": { "type": "string" }
+        }
+      }
+    }
+  }
+}
