@@ -4,7 +4,7 @@ import { allTags } from "../data/registry";
 import { resolveGroup } from "../data/groups";
 import { downloadText, stamp, toCsv } from "../data/csv";
 import ModelEditor from "./ModelEditor";
-import { ModelBadges, TagChips, fmtContext, fmtPrice } from "./bits";
+import { HomeLink, ModelBadges, TagChips, fmtContext, fmtPrice } from "./bits";
 import { TIP } from "../data/glossary";
 
 type SortKey = "vendor" | "name" | "provider" | "access" | "context" | "priceIn" | "priceOut" | "status";
@@ -126,7 +126,7 @@ export default function ModelsView({ models, providers, groups, fileMode, onSave
               {filtered.map((m) => (
                 <tr key={m.id} className={checked.has(m.id) ? "selected" : ""} onClick={() => setEditing(m)} title="Click to edit">
                   <td onClick={(e) => e.stopPropagation()} title="Tick models to run an operation on just these."><input type="checkbox" checked={checked.has(m.id)} onChange={() => toggleChecked(m.id)} aria-label={`Select ${m.name}`} /></td>
-                  <td><div className="name">{m.name}</div><div className="mid" title={`API model id — ${TIP.modelId}`}>{m.modelId}</div></td>
+                  <td><div className="name">{m.name} <HomeLink href={m.homepage} name={m.name} /></div><div className="mid" title={`API model id — ${TIP.modelId}`}>{m.modelId}</div></td>
                   <td title={TIP.vendor}>{m.vendor}</td>
                   <td title={`${providerName(m.provider)} — ${TIP.provider}`}>{providerName(m.provider)}</td>
                   <td><ModelBadges m={{ ...m, status: "current", local: false }} /></td>
@@ -153,7 +153,7 @@ export default function ModelsView({ models, providers, groups, fileMode, onSave
                 {m.capabilities?.length ? <><dt>Can</dt><dd>{m.capabilities.join(", ")}</dd></> : null}
               </dl>
               {m.notes && <div className="detail">{m.notes}</div>}
-              <div className="foot"><TagChips tags={m.tags} /></div>
+              <div className="foot"><TagChips tags={m.tags} /><span className="spacer" /><HomeLink href={m.homepage} name={m.name} label="Homepage ↗" /></div>
             </div>
           ))}
         </div>

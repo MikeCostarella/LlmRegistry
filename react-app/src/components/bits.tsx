@@ -67,6 +67,29 @@ export function TagChips({ tags, active, onToggle, tip }: { tags: string[]; acti
 }
 
 /** A label with hover help: renders a dotted-underlined span that explains itself. */
+/** Normalise a homepage value into something a browser will open (adds https:// if the scheme was left off). */
+export function homepageUrl(s: string | undefined): string | null {
+  const t = (s ?? "").trim();
+  if (!t) return null;
+  return /^[a-z][a-z0-9+.-]*:\/\//i.test(t) ? t : `https://${t}`;
+}
+
+/**
+ * Small "open homepage" button. Renders a new-tab link when the model has a homepage,
+ * and a disabled placeholder otherwise. Clicks never bubble to the row/card behind it.
+ */
+export function HomeLink({ href, name, label, className }: { href: string | undefined; name?: string; label?: string; className?: string }) {
+  const url = homepageUrl(href);
+  const text = label ?? "↗";
+  const cls = `home-link${label ? " labelled" : ""}${className ? ` ${className}` : ""}`;
+  if (!url) return <span className={`${cls} off`} title="No homepage on file — edit the model to add one." aria-disabled="true">{text}</span>;
+  return (
+    <a className={cls} href={url} target="_blank" rel="noopener noreferrer" title={`Open homepage${name ? ` for ${name}` : ""} in a new tab\n${url}`} aria-label={`Open homepage${name ? ` for ${name}` : ""}`} onClick={(e) => e.stopPropagation()}>
+      {text}
+    </a>
+  );
+}
+
 export function Term({ tip, children }: { tip: string; children: ReactNode }) {
   return <span className="term" title={tip}>{children}</span>;
 }

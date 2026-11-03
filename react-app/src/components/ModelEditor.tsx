@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { Access, Capability, Model, Provider, Status } from "../data/types";
 import { ACCESS_VALUES, CAPABILITY_VALUES, STATUS_VALUES } from "../data/types";
 import { slugify } from "../data/registry";
-import { Term, parseTags } from "./bits";
+import { HomeLink, Term, parseTags } from "./bits";
 import { TIP } from "../data/glossary";
 
 const CAP_TIP: Record<Capability, string> = {
@@ -138,7 +138,12 @@ export default function ModelEditor({ model, providers, existingIds, fileMode, o
             ))}
           </div>
         </div>
-        <label className="field wide"><span><Term tip={TIP.homepage}>Homepage</Term></span><input className="input" value={d.homepage} onChange={(e) => set("homepage", e.target.value)} placeholder="https://" /></label>
+        <label className="field wide"><span><Term tip={TIP.homepage}>Homepage</Term></span>
+          <div className="row">
+            <input className="input" style={{ flex: 1 }} value={d.homepage} onChange={(e) => set("homepage", e.target.value)} placeholder="https://" />
+            <HomeLink href={d.homepage} name={d.name || undefined} label="Open ↗" className="btn-like" />
+          </div>
+        </label>
         <label className="field wide"><span><Term tip={TIP.notes}>Notes</Term></span><textarea value={d.notes} onChange={(e) => set("notes", e.target.value)} /></label>
         <label className="row wide" style={{ fontSize: 12.5 }} title={TIP.verified}>
           <input type="checkbox" checked={d.modelIdVerified} onChange={(e) => set("modelIdVerified", e.target.checked)} /> Model id confirmed against the provider's catalog
